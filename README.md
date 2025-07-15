@@ -1,5 +1,3 @@
-# VibeBridge
-
 <div align="center">
   <img src="logo.png" alt="VibeBridge Logo" width="200"/>
 </div>
