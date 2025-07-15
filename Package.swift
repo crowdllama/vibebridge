@@ -15,13 +15,18 @@ let package = Package(
         ),
     ],
     dependencies: [
-        // Add any external dependencies here if needed
+        .package(url: "https://github.com/httpswift/swifter.git", from: "1.5.0")
     ],
     targets: [
         .executableTarget(
             name: "VibeBridge",
-            dependencies: [],
-            path: "Sources/VibeBridge"
+            dependencies: [
+                .product(name: "Swifter", package: "swifter")
+            ],
+            path: "Sources/VibeBridge",
+            swiftSettings: [
+                .unsafeFlags(["-parse-as-library"])
+            ]
         ),
         .testTarget(
             name: "VibeBridgeTests",

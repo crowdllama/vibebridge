@@ -2,25 +2,27 @@
   <img src="logo.png" alt="VibeBridge Logo" width="200"/>
 </div>
 
-A minimal Proof of Concept (PoC) CLI application that exposes Apple Foundation Models to the Internet. This project is currently a Work in Progress (WIP) exploring the integration of Apple's AI capabilities through a command-line interface.
+# VibeBridge
+
+**Expose Apple Foundation Models as an Internet Server**
+
+VibeBridge is a Swift-based HTTP server that exposes Apple's Foundation Models to the Internet, providing a REST API interface for AI model interactions. This project bridges the gap between Apple's local AI capabilities and web-based applications, allowing you to serve AI responses over HTTP.
 
 ## Overview
 
-VibeBridge serves as a bridge between Apple's Foundation Models and external applications, providing a simple CLI interface to interact with Apple's AI models. The project is designed to be lightweight and focused on demonstrating the core functionality without extensive features.
+VibeBridge transforms Apple's Foundation Models into a web service, making it possible to:
+- **Serve AI responses over HTTP** - Access Apple's AI models from any web application
+- **Ollama-compatible API** - Use the same API format as Ollama for easy integration
+- **Local AI with web accessibility** - Keep your AI processing local while exposing it to the internet
+- **Simple deployment** - Single binary that runs as a web server
 
-## Features
-
-- 🚀 Simple command-line interface
-- 🤖 Apple Foundation Models integration
-- 📝 Basic prompt processing
-- 🔧 Error handling and logging
-- 🧪 Unit tests
+The project is designed to be lightweight and focused on providing a reliable bridge between Apple's local AI capabilities and internet-accessible applications.
 
 ## Requirements
 
 - macOS 26.0+
 - Swift 5.9+
-- Xcode 15.0+
+- Xcode 15.0+ - currently using [Xcode 26 Beta 3](https://developer.apple.com/documentation/xcode-release-notes/xcode-26-release-notes)
 
 ## Compatibility & Support
 
@@ -44,67 +46,121 @@ cd vibebridge
 swift build
 ```
 
-3. Run the application:
+3. Run the server:
 ```bash
-swift run vibebridge "Your prompt here"
+# Using swift run
+swift run
+
+# Or using the built binary
+.build/debug/VibeBridge
 ```
 
 ## Usage
 
-### Basic Usage
+### Starting the Server
+
+The server starts automatically on `http://localhost:8080`:
 
 ```bash
-# Simple prompt
-swift run vibebridge "What is machine learning?"
+# Build and run
+swift build
+.build/debug/VibeBridge
 
-# Multi-word prompt
-swift run vibebridge "Explain the benefits of artificial intelligence in healthcare"
+# Or use swift run
+swift run
 ```
 
-## Development
+### HTTP API Endpoints
 
-TBD
+#### Chat API (Ollama Compatible)
 
-### Running Tests
+The main endpoint for AI interactions:
+
+**Request Parameters:**
+- `model` (string, required): The model to use (e.g., "apple").
+- `messages` (array, required): Conversation history, each with `role` and `content`.
+- `stream` (bool, optional): Whether to stream responses.
+- `temperature` (number, optional): Controls randomness of the output. Lower values (e.g., 0.1) make responses more deterministic, higher values (e.g., 1.0) make them more random. Default is model-dependent.
+- `maxTokens` (integer, optional): The maximum number of tokens in the generated response. Useful for limiting response length. Default is model-dependent.
+
+**Example Request:**
+```bash
+curl -X POST http://localhost:8080/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "apple",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Why is the sky blue?"
+      }
+    ],
+    "stream": false,
+    "temperature": 0.7,
+    "maxTokens": 256
+  }'
+```
+
+**Response:**
+```json
+{
+  "model": "apple",
+  "created_at": "2025-07-15T21:19:22.573141Z",
+  "message": {
+    "role": "assistant",
+    "content": "The sky appears blue due to a phenomenon called Rayleigh scattering..."
+  },
+  "done_reason": "stop",
+  "done": true,
+  "total_duration": 4144050458,
+  "load_duration": null,
+  "prompt_eval_count": null,
+  "prompt_eval_duration": null,
+  "eval_count": null,
+  "eval_duration": null
+}
+```
+
+#### Health Check
 
 ```bash
-swift test
+curl http://localhost:8080/health
 ```
 
-### Adding Dependencies
+**Response:**
+```json
+{"status":"healthy"}
+```
 
-Edit `Package.swift` to add external dependencies:
+#### Model Information
 
-```swift
-dependencies: [
-    .package(url: "https://github.com/example/package.git", from: "1.0.0")
-],
-targets: [
-    .executableTarget(
-        name: "VibeBridge",
-        dependencies: ["PackageName"]
-    )
-]
+```bash
+curl http://localhost:8080/api/tags
+```
+
+**Response:**
+```json
+{
+  "models": [
+    {
+      "id": "apple-intelligence",
+      "name": "apple",
+      "description": "Apple Intelligence powered by FoundationModels",
+      "context_length": 8192
+    }
+  ]
+}
 ```
 
 ## Status
 
-⚠️ **Work in Progress**: This is a minimal PoC and should not be used in production. The project is actively being developed and may undergo significant changes.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+⚠️ **Work in Progress**: This is a functional PoC that successfully exposes Foundation Models as an HTTP server. The project is actively being developed and may undergo significant changes.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## Reference Documentation
 
-- Apple Foundation Models framework
-- Swift Package Manager
-- The Swift community 
+- [Generating Content and Performing Tasks with Foundation Models](https://developer.apple.com/documentation/foundationmodels/generating-content-and-performing-tasks-with-foundation-models)
+- [Apple Foundation Models Documentation](https://developer.apple.com/documentation/foundationmodels)

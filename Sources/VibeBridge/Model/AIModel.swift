@@ -4,13 +4,63 @@ import Foundation
 import FoundationModels
 #endif
 
+// MARK: - Data Models
+
+struct AIModel: Codable {
+    let id: String
+    let name: String
+    let description: String?
+    let contextLength: Int?
+    let pricing: Pricing?
+    
+    struct Pricing: Codable {
+        let input: Double?
+        let output: Double?
+    }
+}
+
+struct ChatRequest: Codable {
+    let model: String
+    let messages: [Message]
+    let stream: Bool?
+    let temperature: Double?
+    let maxTokens: Int?
+    let topP: Double?
+    let topK: Int?
+    
+    struct Message: Codable {
+        let role: String
+        let content: String
+    }
+}
+
+struct ChatResponse: Codable {
+    let model: String
+    let created_at: String
+    let message: ChatRequest.Message
+    let done_reason: String
+    let done: Bool
+    let total_duration: Int64
+    let load_duration: Int64?
+    let prompt_eval_count: Int?
+    let prompt_eval_duration: Int64?
+    let eval_count: Int?
+    let eval_duration: Int64?
+}
+
+struct ModelResponse: Codable {
+    let models: [AIModel]
+}
+
+// MARK: - AI Model Integration
+
 @available(macOS 26.0, iOS 26.0, *)
-struct AIModel {
-    static func createSession(from transcript: Transcript) throws -> LanguageModelSession {
+struct AIModelHandler {
+    static func createSession(from transcript: FoundationModels.Transcript) throws -> FoundationModels.LanguageModelSession {
         Logger.debug("Creating session with default model and guardrails...")
-        let session = LanguageModelSession.init(
-            model: SystemLanguageModel.default,
-            guardrails: LanguageModelSession.Guardrails.default,
+        let session = FoundationModels.LanguageModelSession.init(
+            model: FoundationModels.SystemLanguageModel.default,
+            guardrails: FoundationModels.LanguageModelSession.Guardrails.default,
             tools: [],
             transcript: transcript
         )
@@ -18,7 +68,7 @@ struct AIModel {
         return session
     }
 
-    static func createTranscriptAndPrompt(from messages: [[String: Any]]) throws -> (Transcript, String) {
+    static func createTranscriptAndPrompt(from messages: [[String: Any]]) throws -> (FoundationModels.Transcript, String) {
         Logger.debug("Creating transcript from \(messages.count) messages...")
         
         guard !messages.isEmpty else {
@@ -32,7 +82,7 @@ struct AIModel {
             throw NSError(domain: "VibeBridge", code: 2, userInfo: [NSLocalizedDescriptionKey: "Last message must be from user role"])
         }
         
-        var entries: [Transcript.Entry] = []
+        var entries: [FoundationModels.Transcript.Entry] = []
         
         let transcriptMessages = Array(messages.dropLast())
         Logger.debug("Processing \(transcriptMessages.count) transcript messages...")
@@ -46,21 +96,21 @@ struct AIModel {
             
             Logger.debug("Processing message \(index): role=\(role), content length=\(content.count)")
             
-            let segment = Transcript.Segment.text(
+            let segment = FoundationModels.Transcript.Segment.text(
                 .init(content: content)
             )
             
             switch role {
             case "system":
-                let instructions = Transcript.Instructions.init(segments: [segment], toolDefinitions: [])
+                let instructions = FoundationModels.Transcript.Instructions.init(segments: [segment], toolDefinitions: [])
                 entries.append(.instructions(instructions))
                 Logger.debug("Added system instructions")
             case "user":
-                let prompt = Transcript.Prompt(segments: [segment])
+                let prompt = FoundationModels.Transcript.Prompt(segments: [segment])
                 entries.append(.prompt(prompt))
                 Logger.debug("Added user prompt")
             case "assistant":
-                let response = Transcript.Response(assetIDs: [], segments: [segment])
+                let response = FoundationModels.Transcript.Response(assetIDs: [], segments: [segment])
                 entries.append(.response(response))
                 Logger.debug("Added assistant response")
             default:
@@ -69,15 +119,15 @@ struct AIModel {
         }
         
         Logger.debug("Created transcript with \(entries.count) entries")
-        return (Transcript(entries: entries), userPrompt)
+        return (FoundationModels.Transcript(entries: entries), userPrompt)
     }
 
-    static func createGenerationOptions(from options: [String: Any]) throws -> GenerationOptions {
+    static func createGenerationOptions(from options: [String: Any]) throws -> FoundationModels.GenerationOptions {
         Logger.debug("Creating generation options from: \(options)")
         
         var temperature: Double?
         var maximumResponseTokens: Int?
-        var samplingMode: GenerationOptions.SamplingMode = .greedy
+        var samplingMode: FoundationModels.GenerationOptions.SamplingMode = .greedy
         
         if let temp = options["temperature"] as? Double {
             temperature = temp
@@ -106,7 +156,7 @@ struct AIModel {
             Logger.debug("Using default greedy sampling mode")
         }
         
-        let generationOptions = GenerationOptions(
+        let generationOptions = FoundationModels.GenerationOptions(
             sampling: samplingMode,
             temperature: temperature,
             maximumResponseTokens: maximumResponseTokens
@@ -114,5 +164,46 @@ struct AIModel {
         
         Logger.debug("Created generation options: \(generationOptions)")
         return generationOptions
+    }
+    
+    static func generateResponse(for request: ChatRequest) async throws -> String {
+        Logger.info("Generating AI response for chat request")
+        
+        // Convert messages to the format expected by AIModelHandler
+        let messages: [[String: Any]] = request.messages.map { message in
+            ["role": message.role, "content": message.content]
+        }
+        
+        // Create generation options
+        var options: [String: Any] = [:]
+        if let temperature = request.temperature {
+            options["temperature"] = temperature
+        }
+        if let maxTokens = request.maxTokens {
+            options["maxTokens"] = maxTokens
+        }
+        if let topP = request.topP {
+            options["topP"] = topP
+        }
+        if let topK = request.topK {
+            options["topK"] = topK
+        }
+        
+        // Create transcript and prompt
+        let (transcript, userPrompt) = try createTranscriptAndPrompt(from: messages)
+        
+        // Create session
+        let session = try createSession(from: transcript)
+        
+        // Create generation options
+        let generationOptions = try createGenerationOptions(from: options)
+        
+        Logger.debug("Sending prompt: \(userPrompt)")
+        
+        // Generate response
+        let response = try await session.respond(to: userPrompt, options: generationOptions)
+        
+        Logger.success("AI response generated successfully")
+        return response.content
     }
 } 
