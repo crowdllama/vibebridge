@@ -6,12 +6,14 @@
 
 **Expose Apple Foundation Models as an Internet Server**
 
-VibeBridge is a Swift-based HTTP server that exposes Apple's Foundation Models to the Internet, providing a REST API interface for AI model interactions. This project bridges the gap between Apple's local AI capabilities and web-based applications, allowing you to serve AI responses over HTTP.
+VibeBridge is a Swift-based HTTP server that exposes Apple's Foundation Models to the Internet, providing a REST API interface for LLM model interactions. This project bridges the gap between Apple's local AI capabilities and web-based applications, allowing you to serve LLM responses over HTTP. This is a proof-of-concept (PoC) to explore making AI models accessible on the Internet and potentially through a P2P network like [crowdllama](https://github.com/crowdllama/crowdllama).
+
+[Apple Foundation Models](https://developer.apple.com/documentation/foundationmodels) are part of [Apple Intelligence](https://www.apple.com/apple-intelligence/), Apple's on-device AI system. These are offline, local language models that run directly on Apple devices including iPhones, iPads, and Macs. They provide powerful AI capabilities while maintaining privacy by keeping all processing on-device, with no data sent to external servers.
 
 ## Overview
 
 VibeBridge transforms Apple's Foundation Models into a web service, making it possible to:
-- **Serve AI responses over HTTP** - Access Apple's AI models from any web application
+- **Serve LLM responses over HTTP** - Access Apple's AI models from any web application
 - **Ollama-compatible API** - Use the same API format as Ollama for easy integration
 - **Local AI with web accessibility** - Keep your AI processing local while exposing it to the internet
 - **Simple deployment** - Single binary that runs as a web server
@@ -156,11 +158,11 @@ curl http://localhost:8080/api/tags
 
 ⚠️ **Work in Progress**: This is a functional PoC that successfully exposes Foundation Models as an HTTP server. The project is actively being developed and may undergo significant changes.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Reference Documentation
 
 - [Generating Content and Performing Tasks with Foundation Models](https://developer.apple.com/documentation/foundationmodels/generating-content-and-performing-tasks-with-foundation-models)
 - [Apple Foundation Models Documentation](https://developer.apple.com/documentation/foundationmodels)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
