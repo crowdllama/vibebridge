@@ -218,10 +218,10 @@ curl http://localhost:8080/api/tags
 {
   "models": [
     {
-      "id": "apple-intelligence",
+      "model": "apple",
       "name": "apple",
-      "description": "Apple Intelligence powered by FoundationModels",
-      "context_length": 8192
+      "size": 0,
+      "details": {}
     }
   ]
 }
