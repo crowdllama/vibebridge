@@ -34,6 +34,15 @@ struct ChatRequest: Codable {
     }
 }
 
+struct GenerateRequest: Codable {
+    let model: String
+    let prompt: String
+    let temperature: Double?
+    let maxTokens: Int?
+    let topP: Double?
+    let topK: Int?
+}
+
 struct ChatResponse: Codable {
     let model: String
     let created_at: String
@@ -191,6 +200,43 @@ struct AIModelHandler {
         
         // Create transcript and prompt
         let (transcript, userPrompt) = try createTranscriptAndPrompt(from: messages)
+        
+        // Create session
+        let session = try createSession(from: transcript)
+        
+        // Create generation options
+        let generationOptions = try createGenerationOptions(from: options)
+        
+        Logger.debug("Sending prompt: \(userPrompt)")
+        
+        // Generate response
+        let response = try await session.respond(to: userPrompt, options: generationOptions)
+        
+        Logger.success("AI response generated successfully")
+        return response.content
+    }
+    
+    static func generateResponse(for request: GenerateRequest) async throws -> String {
+        Logger.info("Generating AI response for generate request")
+        
+        // Create generation options
+        var options: [String: Any] = [:]
+        if let temperature = request.temperature {
+            options["temperature"] = temperature
+        }
+        if let maxTokens = request.maxTokens {
+            options["maxTokens"] = maxTokens
+        }
+        if let topP = request.topP {
+            options["topP"] = topP
+        }
+        if let topK = request.topK {
+            options["topK"] = topK
+        }
+        
+        // Create empty transcript and use the prompt directly
+        let transcript = FoundationModels.Transcript(entries: [])
+        let userPrompt = request.prompt
         
         // Create session
         let session = try createSession(from: transcript)

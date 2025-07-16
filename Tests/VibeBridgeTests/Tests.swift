@@ -266,4 +266,116 @@ final class HTTPServerTests: XCTestCase {
         task.resume()
         wait(for: [expectation], timeout: 5.0)
     }
+    
+    func testGenerateEndpointWithSimplePrompt() throws {
+        try server.start(port: testPort)
+        defer { server.stop() }
+        
+        let expectation = XCTestExpectation(description: "Generate endpoint with simple prompt test")
+        
+        let requestBody = GenerateRequest(
+            model: "apple",
+            prompt: "What is 2+2?",
+            temperature: nil,
+            maxTokens: nil,
+            topP: nil,
+            topK: nil
+        )
+        
+        let url = URL(string: "http://localhost:\(testPort)/api/generate")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(requestBody)
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            defer { expectation.fulfill() }
+            
+            XCTAssertNil(error)
+            XCTAssertNotNil(data)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                XCTAssertEqual(httpResponse.statusCode, 200)
+            }
+            
+            if let data = data,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                // Validate response structure without checking the actual LLM answer
+                XCTAssertEqual(json["model"] as? String, "apple")
+                XCTAssertNotNil(json["created_at"])
+                XCTAssertNotNil(json["response"]) // Generate endpoint uses "response" field
+                
+                // Don't validate the actual content - just ensure it exists
+                XCTAssertNotNil(json["response"] as? String)
+                
+                XCTAssertEqual(json["done_reason"] as? String, "stop")
+                XCTAssertEqual(json["done"] as? Bool, true)
+                XCTAssertGreaterThan(json["total_duration"] as? Int64 ?? 0, 0)
+            }
+        }
+        
+        task.resume()
+        wait(for: [expectation], timeout: 30.0) // Increased timeout for LLM processing
+    }
+    
+    func testGenerateEndpointWithInvalidModel() throws {
+        try server.start(port: testPort)
+        defer { server.stop() }
+        
+        let expectation = XCTestExpectation(description: "Generate endpoint invalid model test")
+        
+        let requestBody = GenerateRequest(
+            model: "llama3.2",
+            prompt: "Hello",
+            temperature: nil,
+            maxTokens: nil,
+            topP: nil,
+            topK: nil
+        )
+        
+        let url = URL(string: "http://localhost:\(testPort)/api/generate")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(requestBody)
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            defer { expectation.fulfill() }
+            
+            XCTAssertNil(error)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                XCTAssertEqual(httpResponse.statusCode, 400)
+            }
+        }
+        
+        task.resume()
+        wait(for: [expectation], timeout: 5.0)
+    }
+    
+    func testGenerateEndpointWithInvalidJSON() throws {
+        try server.start(port: testPort)
+        defer { server.stop() }
+        
+        let expectation = XCTestExpectation(description: "Generate endpoint invalid JSON test")
+        
+        let url = URL(string: "http://localhost:\(testPort)/api/generate")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = "invalid json".data(using: .utf8)
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            defer { expectation.fulfill() }
+            
+            XCTAssertNil(error)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                XCTAssertEqual(httpResponse.statusCode, 400)
+            }
+        }
+        
+        task.resume()
+        wait(for: [expectation], timeout: 5.0)
+    }
 } 

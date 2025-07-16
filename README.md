@@ -123,6 +123,40 @@ curl -X POST http://localhost:8080/api/chat \
 }
 ```
 
+#### Generate API
+
+A simpler endpoint for single-prompt generation:
+
+**Request Parameters:**
+- `model` (string, required): The model to use (e.g., "apple").
+- `prompt` (string, required): The text prompt to generate a response for.
+- `temperature` (number, optional): Controls randomness of the output. Lower values (e.g., 0.1) make responses more deterministic, higher values (e.g., 1.0) make them more random. Default is model-dependent.
+- `maxTokens` (integer, optional): The maximum number of tokens in the generated response. Useful for limiting response length. Default is model-dependent.
+
+**Example Request:**
+```bash
+curl -X POST http://localhost:8080/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "apple",
+    "prompt": "Is the sky blue?",
+    "temperature": 0.7,
+    "maxTokens": 256
+  }'
+```
+
+**Response:**
+```json
+{
+  "model": "apple",
+  "created_at": "2025-07-15T21:19:22.573141Z",
+  "response": "Yes, the sky appears blue due to Rayleigh scattering...",
+  "done_reason": "stop",
+  "done": true,
+  "total_duration": 4144050458
+}
+```
+
 #### Health Check
 
 ```bash
