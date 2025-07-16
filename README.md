@@ -157,6 +157,45 @@ curl -X POST http://localhost:8080/api/generate \
 }
 ```
 
+#### Internal Endpoints
+
+Internal endpoints provide access to Apple Foundation Models' internal functions and capabilities that aren't part of the standard Ollama-compatible API. These endpoints are useful for debugging, monitoring, and accessing advanced Apple-specific features.
+
+**Reasoning:**
+- **Debugging**: Check if Foundation Models are available and working
+- **Monitoring**: Verify system capabilities and health
+- **Development**: Access Apple-specific features not available in standard APIs
+- **Integration**: Test compatibility with different Apple devices and OS versions
+
+##### Foundation Models Availability
+
+Check if Apple Foundation Models are available on the current system:
+
+**Request:**
+```bash
+curl http://localhost:8080/internal/isAvailable
+```
+
+**Response:**
+```json
+{
+  "isAvailable": true
+}
+```
+
+**Response (when not available):**
+```json
+{
+  "isAvailable": false
+}
+```
+
+**Use Cases:**
+- Verify Foundation Models framework is installed
+- Check OS version compatibility (macOS 26.0+ / iOS 26.0+)
+- Test system readiness before making AI requests
+- Debug installation or configuration issues
+
 #### Health Check
 
 ```bash
