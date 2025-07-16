@@ -107,6 +107,44 @@ final class HTTPServerTests: XCTestCase {
         wait(for: [expectation], timeout: 5.0)
     }
     
+    func testSupportedLanguagesEndpoint() throws {
+        try server.start(port: testPort)
+        defer { server.stop() }
+
+        let expectation = XCTestExpectation(description: "Supported languages endpoint test")
+
+        let url = URL(string: "http://localhost:\(testPort)/api/internal/supportedLanguages")!
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            defer { expectation.fulfill() }
+
+            XCTAssertNil(error)
+            XCTAssertNotNil(data)
+
+            if let httpResponse = response as? HTTPURLResponse {
+                XCTAssertEqual(httpResponse.statusCode, 200)
+            }
+
+            if let data = data,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let languages = json["supportedLanguages"] as? [[String: Any]] {
+                XCTAssertFalse(languages.isEmpty, "supportedLanguages array should not be empty")
+                let first = languages.first
+                XCTAssertNotNil(first)
+                if let lang = first {
+                    XCTAssertNotNil(lang["languageCode"])
+                    XCTAssertTrue(lang["languageCode"] is String)
+                    // Note: script field may be omitted if null, so we don't check for it
+                    XCTAssertTrue(lang.keys.contains("region"))
+                }
+            } else {
+                XCTFail("Response did not contain a valid supportedLanguages array")
+            }
+        }
+
+        task.resume()
+        wait(for: [expectation], timeout: 5.0)
+    }
+    
     func testChatEndpointWithSimpleLLMPrompt() throws {
         try server.start(port: testPort)
         defer { server.stop() }

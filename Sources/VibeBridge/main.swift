@@ -26,6 +26,8 @@ struct Main {
         #if canImport(FoundationModels)
         if #available(macOS 26.0, iOS 26.0, *) {
             print("FoundationModels.SystemLanguageModel.isAvailable: true (framework and OS version supported)")
+            var model = SystemLanguageModel.default
+            print(model.supportedLanguages)
         } else {
             print("FoundationModels.SystemLanguageModel.isAvailable: false (requires macOS 26.0 or iOS 26.0)")
         }

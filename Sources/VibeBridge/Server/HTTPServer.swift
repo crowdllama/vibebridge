@@ -152,6 +152,16 @@ class HTTPServer {
             })
         }
         
+        // Supported languages endpoint
+        server.GET["/api/internal/supportedLanguages"] = { request in
+            let languages = Internal.supportedLanguages()
+            let response = ["supportedLanguages": languages]
+            return HttpResponse.raw(200, "OK", ["Content-Type": "application/json"], { writer in
+                let data = try JSONEncoder().encode(response)
+                try writer.write(data)
+            })
+        }
+        
         // Model endpoint (Ollama-like)
         server.GET["/api/tags"] = { request in
             let model = AIModel(
