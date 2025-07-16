@@ -155,11 +155,12 @@ class HTTPServer {
         // Model endpoint (Ollama-like)
         server.GET["/api/tags"] = { request in
             let model = AIModel(
-                id: Constants.Model.id,
+                model: "apple",
                 name: Constants.Model.name,
-                description: Constants.Model.description,
                 contextLength: 8192,
-                pricing: nil
+                pricing: nil,
+                size: 0,
+                details: [:]
             )
             
             let modelResponse = ModelResponse(models: [model])

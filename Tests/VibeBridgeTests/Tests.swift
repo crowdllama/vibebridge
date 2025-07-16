@@ -63,8 +63,10 @@ final class HTTPServerTests: XCTestCase {
                let models = json["models"] as? [[String: Any]],
                let firstModel = models.first {
                 XCTAssertEqual(firstModel["name"] as? String, "apple")
-                XCTAssertEqual(firstModel["id"] as? String, "apple-intelligence")
-                XCTAssertNotNil(firstModel["description"])
+                XCTAssertEqual(firstModel["model"] as? String, "apple")
+                XCTAssertEqual(firstModel["size"] as? Int, 0)
+                XCTAssertNotNil(firstModel["details"])
+                XCTAssertTrue(firstModel["details"] is [String: String])
             }
         }
         

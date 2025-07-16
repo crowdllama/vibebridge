@@ -7,11 +7,12 @@ import FoundationModels
 // MARK: - Data Models
 
 struct AIModel: Codable {
-    let id: String
+    let model: String
     let name: String
-    let description: String?
     let contextLength: Int?
     let pricing: Pricing?
+    let size: Int
+    let details: [String: String]
     
     struct Pricing: Codable {
         let input: Double?
