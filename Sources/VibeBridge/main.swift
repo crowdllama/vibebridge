@@ -1,6 +1,10 @@
 import Foundation
 import Swifter
 
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
+
 // MARK: - Global Variables
 
 var globalServer: HTTPServer?
@@ -18,6 +22,17 @@ func signalHandler(_ signal: Int32) {
 @main
 struct Main {
     static func main() {
+        // Check FoundationModels availability
+        #if canImport(FoundationModels)
+        if #available(macOS 26.0, iOS 26.0, *) {
+            print("FoundationModels.SystemLanguageModel.isAvailable: true (framework and OS version supported)")
+        } else {
+            print("FoundationModels.SystemLanguageModel.isAvailable: false (requires macOS 26.0 or iOS 26.0)")
+        }
+        #else
+        print("FoundationModels.SystemLanguageModel.isAvailable: false (FoundationModels framework not available)")
+        #endif
+        
         let server = HTTPServer()
         server.setup()
         globalServer = server

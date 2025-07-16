@@ -142,6 +142,16 @@ class HTTPServer {
             return HttpResponse.ok(.json(response))
         }
         
+        // Internal endpoint - internal stuff from Apple Foundation will be exposed as an API
+        server.GET["/internal/isAvailable"] = { request in
+            let isAvailable = Internal.isAvailable()
+            let response = ["isAvailable": isAvailable]
+            return HttpResponse.raw(200, "OK", ["Content-Type": "application/json"], { writer in
+                let data = try JSONSerialization.data(withJSONObject: response, options: [])
+                try writer.write(data)
+            })
+        }
+        
         // Model endpoint (Ollama-like)
         server.GET["/api/tags"] = { request in
             let model = AIModel(

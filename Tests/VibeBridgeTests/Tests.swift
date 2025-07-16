@@ -72,6 +72,39 @@ final class HTTPServerTests: XCTestCase {
         wait(for: [expectation], timeout: 5.0)
     }
     
+    func testInternalIsAvailableEndpoint() throws {
+        try server.start(port: testPort)
+        defer { server.stop() }
+        
+        let expectation = XCTestExpectation(description: "Internal isAvailable endpoint test")
+        
+        let url = URL(string: "http://localhost:\(testPort)/internal/isAvailable")!
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            defer { expectation.fulfill() }
+            
+            XCTAssertNil(error)
+            XCTAssertNotNil(data)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                XCTAssertEqual(httpResponse.statusCode, 200)
+                XCTAssertEqual(httpResponse.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            }
+            
+            if let data = data,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                XCTAssertNotNil(json["isAvailable"])
+                XCTAssertTrue(json["isAvailable"] is Bool)
+                
+                // The value should match what Internal.isAvailable() returns
+                let expectedValue = Internal.isAvailable()
+                XCTAssertEqual(json["isAvailable"] as? Bool, expectedValue)
+            }
+        }
+        
+        task.resume()
+        wait(for: [expectation], timeout: 5.0)
+    }
+    
     func testChatEndpointWithSimpleLLMPrompt() throws {
         try server.start(port: testPort)
         defer { server.stop() }
