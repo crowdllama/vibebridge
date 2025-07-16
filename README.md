@@ -173,7 +173,7 @@ Check if Apple Foundation Models are available on the current system:
 
 **Request:**
 ```bash
-curl http://localhost:8080/internal/isAvailable
+curl http://localhost:8080/api/internal/isAvailable
 ```
 
 **Response:**

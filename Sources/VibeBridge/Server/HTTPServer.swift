@@ -143,7 +143,7 @@ class HTTPServer {
         }
         
         // Internal endpoint - internal stuff from Apple Foundation will be exposed as an API
-        server.GET["/internal/isAvailable"] = { request in
+        server.GET["/api/internal/isAvailable"] = { request in
             let isAvailable = Internal.isAvailable()
             let response = ["isAvailable": isAvailable]
             return HttpResponse.raw(200, "OK", ["Content-Type": "application/json"], { writer in

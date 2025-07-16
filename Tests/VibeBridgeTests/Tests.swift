@@ -78,7 +78,7 @@ final class HTTPServerTests: XCTestCase {
         
         let expectation = XCTestExpectation(description: "Internal isAvailable endpoint test")
         
-        let url = URL(string: "http://localhost:\(testPort)/internal/isAvailable")!
+        let url = URL(string: "http://localhost:\(testPort)/api/internal/isAvailable")!
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
             defer { expectation.fulfill() }
             
