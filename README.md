@@ -196,6 +196,34 @@ curl http://localhost:8080/api/internal/isAvailable
 - Test system readiness before making AI requests
 - Debug installation or configuration issues
 
+#### Supported Languages
+
+Returns an array of supported language objects, each with a language code, script, and region, as supported by the default Apple Foundation Model on this system.
+
+**Request:**
+```bash
+curl http://localhost:8080/api/internal/supportedLanguages
+```
+
+**Response:**
+```json
+{
+  "supportedLanguages": [
+    {
+      "languageCode": "fr",
+      "script": null,
+      "region": "CA"
+    },
+    {
+      "languageCode": "en",
+      "script": null,
+      "region": "US"
+    }
+    // ...more language objects depending on the model
+  ]
+}
+```
+
 #### Health Check
 
 ```bash
