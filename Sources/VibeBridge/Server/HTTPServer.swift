@@ -157,8 +157,7 @@ class HTTPServer {
             let model = AIModel(
                 model: "apple",
                 name: Constants.Model.name,
-                contextLength: 8192,
-                pricing: nil,
+                contextLength: nil,
                 size: 0,
                 details: [:]
             )

@@ -10,14 +10,8 @@ struct AIModel: Codable {
     let model: String
     let name: String
     let contextLength: Int?
-    let pricing: Pricing?
     let size: Int
     let details: [String: String]
-    
-    struct Pricing: Codable {
-        let input: Double?
-        let output: Double?
-    }
 }
 
 struct ChatRequest: Codable {
